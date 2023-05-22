@@ -16,12 +16,13 @@ public class MyFrame extends JFrame {
     private final JTextField idField;
     private final JDateChooser startDatePicker = new JDateChooser();
     private final JDateChooser endDatePicker = new JDateChooser();
+    private final JTextField totalCountField = new JTextField(10);
+    private final JTextField successCountField = new JTextField(10);
+    private final JTextField failureCountField = new JTextField(10);
 
     JButton filterButton = new JButton("Filter by Date");
 
-
     public MyFrame(SpaceXService service) {
-
         this.spaceXService = service;
         setTitle("SpaceX Launch Data");
         setSize(800, 600);
@@ -29,7 +30,6 @@ public class MyFrame extends JFrame {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         filterButton.addActionListener(e -> filterByDate(startDatePicker.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate(),
                 endDatePicker.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate()));
-
 
         JButton loadButton = new JButton("Load Data");
         loadButton.addActionListener(e -> loadData());
@@ -47,12 +47,22 @@ public class MyFrame extends JFrame {
         panel.add(idField);
         panel.add(searchButton);
 
-
         panel.add(new JLabel("Start Date:"));
         panel.add(startDatePicker);
         panel.add(new JLabel("End Date:"));
         panel.add(endDatePicker);
         panel.add(filterButton);
+
+        panel.add(new JLabel("Total Count:"));
+        panel.add(totalCountField);
+        panel.add(new JLabel("Success Count:"));
+        panel.add(successCountField);
+        panel.add(new JLabel("Failure Count:"));
+        panel.add(failureCountField);
+
+        totalCountField.setEditable(false);
+        successCountField.setEditable(false);
+        failureCountField.setEditable(false);
 
         add(panel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
@@ -68,17 +78,31 @@ public class MyFrame extends JFrame {
         String[] columnNames = {"ID", "Name", "Details", "Date"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
+        int totalCount = launches.length;
+        int successCount = 0;
+        int failureCount = 0;
+
         for (Launch launch : launches) {
             String id = launch.getId();
             String name = launch.getName();
             String details = launch.getDetails();
             LocalDateTime date = launch.getDate_utc();
+            boolean success = launch.getSuccess() != null && launch.getSuccess();
 
             Object[] rowData = {id, name, details, date};
             model.addRow(rowData);
+
+            if (success) {
+                successCount++;
+            } else {
+                failureCount++;
+            }
         }
 
         table.setModel(model);
+        totalCountField.setText(String.valueOf(totalCount));
+        successCountField.setText(String.valueOf(successCount));
+        failureCountField.setText(String.valueOf(failureCount));
     }
 
     private void searchById() {
@@ -87,14 +111,24 @@ public class MyFrame extends JFrame {
 
         String[] columnNames = {"ID", "Name", "Details", "Date"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+
         if (launch != null) {
             String launchId = launch.getId();
             String name = launch.getName();
             String details = launch.getDetails();
             LocalDateTime date = launch.getDate_utc();
+            boolean success = launch.getSuccess() != null && launch.getSuccess();
 
             Object[] rowData = {launchId, name, details, date};
             model.addRow(rowData);
+
+            int totalCount = 1;
+            int successCount = success ? 1 : 0;
+            int failureCount = success ? 0 : 1;
+
+            totalCountField.setText(String.valueOf(totalCount));
+            successCountField.setText(String.valueOf(successCount));
+            failureCountField.setText(String.valueOf(failureCount));
         }
 
         table.setModel(model);
@@ -113,17 +147,30 @@ public class MyFrame extends JFrame {
         String[] columnNames = {"ID", "Name", "Details", "Date"};
         DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
+        int totalCount = filteredLaunches.length;
+        int successCount = 0;
+        int failureCount = 0;
+
         for (Launch launch : filteredLaunches) {
             String id = launch.getId();
             String name = launch.getName();
             String details = launch.getDetails();
             LocalDateTime date = launch.getDate_utc();
+            boolean success = launch.getSuccess() != null && launch.getSuccess();
 
             Object[] rowData = {id, name, details, date};
             model.addRow(rowData);
+
+            if (success) {
+                successCount++;
+            } else {
+                failureCount++;
+            }
         }
 
         table.setModel(model);
+        totalCountField.setText(String.valueOf(totalCount));
+        successCountField.setText(String.valueOf(successCount));
+        failureCountField.setText(String.valueOf(failureCount));
     }
-
 }
